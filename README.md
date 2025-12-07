@@ -294,27 +294,23 @@ STRATEGY: "Binary Search Approach"
 ### 1. Strategy Comparison Visualization
 ![Strategy Comparison](images/strategy_comparison_improved.png)
 
-
 ## 🖼️ Simulation Visualization Examples
 
- - Dark gray (OFF, no agent)  
- - Light gray (ON, no agent)  
- - Dark blue (OFF with agent)  
- - Light blue (ON with agent)  
- - **Dark red (Toggle OFF→ON)**  
- - Light red (Toggle ON→OFF)
-
-
-
+![Dark gray](colors/darkgray.svg) `#3c3c3c` - Dark gray (OFF, no agent)  
+![Light gray](colors/lightgray.svg) `#c8c8c8` - Light gray (ON, no agent)  
+![Dark blue](colors/darkblue.svg) `#323496` - Dark blue (OFF with agent)  
+![Light blue](colors/lightblue.svg) `#8ca0ff` - Light blue (ON with agent)  
+![Dark red](colors/darkred.svg) `#b42828` - **Dark red (Toggle OFF→ON)**  
+![Light red](colors/lightred.svg) `#ff7878` - Light red (Toggle ON→OFF)
 
 ### File Naming Convention
-Generated images follow this pattern: **`n{WAGGONS}_k{CONFIG}_{STRATEGY}.png`**
+Generated images follow this pattern: **`n{CARRIAGES}_k{CONFIG}_{STRATEGY}.png`**
 
 | Example File | Interpretation |
 |--------------|----------------|
-| `n12_k2_Heimkehr-Marker.png` | 12 waggons, random config (seed=2), Home-Marker strategy |
-| `n24_k0_Powers-of-Two.png` | 24 waggons, all OFF, Powers-of-Two strategy |
-| `n48_k3_Hypothesis-OFF.png` | 48 waggons, random seed 3, Hypothesis Testing |
+| `n12_k2_Heimkehr-Marker.png` | 12 carriages, random config (seed=2), Home-Marker strategy |
+| `n24_k0_Powers-of-Two.png` | 24 carriages, all OFF, Powers-of-Two strategy |
+| `n48_k3_Hypothesis-OFF.png` | 48 carriages, random seed 3, Hypothesis Testing |
 
 **Configuration Key:**
 - `k0`: All lights OFF
@@ -325,11 +321,11 @@ Generated images follow this pattern: **`n{WAGGONS}_k{CONFIG}_{STRATEGY}.png`**
 ![Strategy Comparison](images/n24_k3_Heimkehr-Marker.png)
 
 **File:** `n24_k3_Heimkehr-Marker.png`  
-**Interpretation:** 24 waggons with random initial configuration (seed 3) using Home-Marker strategy.
+**Interpretation:** 24 carriages with random initial configuration (seed 3) using Home-Marker strategy.
 
 
 **Train Configuration:**
-- **Waggons:** 24
+- **Carriages:** 24
 - **Initial state (k=3):** `000011000111010011001101`
 - **Total steps required:** 303
 - **Strategy:** Heimkehr-Marker (Home-Marker)
