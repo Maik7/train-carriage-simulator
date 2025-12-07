@@ -2,6 +2,9 @@
 
 A Python simulator for the classic "Train Carriage Problem" (also known as "Labyrinth Problem" or "Train-Carriage Problem") with multiple solution strategies and visualizations.
 
+
+![ring train picture](images/Copilot_20251207_174149.png)
+
 ## 📖 The Puzzle
 
 ### Problem Statement
@@ -13,6 +16,8 @@ You as an agent can:
 3. Remember limited information (memory)
 
 **Goal**: Determine how many carriages the train has (n) and terminate.
+
+![ring train picture](images/Copilot_20251207_174204.png)
 
 ### Example
 - Starting position: Carriage 0
@@ -70,6 +75,7 @@ The simulator contains multiple solution strategies:
 - Searches for OFF lights for hypothesis formation
 - Tests hypotheses with modular arithmetic
 - Elegant mathematical solution
+- Up to now best solution in most cases
 
 ### 4. **Optimized-Powers** (Optimized Powers-of-Two)
 - Improved version of Powers-of-Two
@@ -83,6 +89,7 @@ The simulator contains multiple solution strategies:
 ### 6. **Counter Strategy** (Counting Strategy)
 - Counts OFF lights
 - Adaptive thresholds
+- mostly unsuccesful (needs tuning)
 
 ## 📊 Strategy Comparison
 
@@ -153,23 +160,15 @@ my_strategy_alternative = my_strategy
 ```
 
 ### Step 2: Register Strategy (Optional)
-If using automatic registration, the strategy will be auto-detected. For manual registration, add it to `strategies/__init__.py`:
+By using automatic registration, the strategy will be auto-detected.:
 
-```python
-from .my_strategy import my_strategy
 
-strategies["My-Strategy"] = my_strategy
-```
 
 ### Step 3: Test Strategy
 ```python
 from strategies import strategies
 
-# Use your strategy
-my_strategy = strategies["My-Strategy"]
 
-# Or import directly
-from strategies.my_strategy import my_strategy
 ```
 
 ## 📈 Example Execution
@@ -181,7 +180,7 @@ from main import compare_strategies
 test_configs = [
     (5, 0),   # 5 carriages, all OFF
     (5, 1),   # 5 carriages, all ON
-    (5, 2),   # 5 carriages, random
+    (5, 2),   # 5 carriages, random (2nd parameter is seed for random number generator)
     (10, 0),  # 10 carriages, all OFF
     # ... more configurations
 ]
@@ -276,28 +275,25 @@ This project was developed with the assistance of [DeepSeek](https://www.deepsee
 - Code optimization
 - Documentation
 
-Special thanks to the Instagram pages that spread this fascinating puzzle and inspired this project.
+Special thanks to Marc Ordower. He created the Instagram pages that spread this fascinating puzzle and inspired this project.
+
+https://www.instagram.com/reel/DPKchvZCSBY/?igsh=OWZuaXRldHY5anNv
+https://www.instagram.com/reel/DPXV7R2Cf8u/?igsh=eXBqMzVyOHFld3lo
+https://www.instagram.com/reel/DPfCHmuCfGK/?igsh=ajFreXl6ZDBib2tw
 
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/your-username/train-carriage-simulator)
-- [Issue Tracker](https://github.com/your-username/train-carriage-simulator/issues)
-- [Python Package Index (PyPI)](https://pypi.org/) *(if you want to publish it as a package)*
+- [GitHub Repository](https://github.com/Maik7/train-carriage-simulator)
+- [Issue Tracker](https://github.com/Maik 7/train-carriage-simulator/issues)
 
-## 📚 Further Reading
 
-1. **"Algorithmic Puzzles"** by Anany Levitin
-2. **"The Algorithm Design Manual"** by Steven S. Skiena
-3. **"Mathematical Puzzles"** by Peter Winkler
-4. Research papers on "Labyrinth Problems" and "Agent-based Exploration"
 
 ## 💡 Tips for Creating Your Own Strategies
 
-1. **Utilize ring structure**: Position mod n
-2. **Minimize memory usage**: Keep only essential information
-3. **Think in cycles**: Recognize complete loops
-4. **Test edge cases**: n=1, all lights ON/OFF
-5. **Visualize**: Use built-in visualization tools
+1. **Minimize memory usage**: Keep only essential information
+2. **Think in cycles**: Recognize complete loops
+3. **Test edge cases**: n=1, all lights ON/OFF
+4. **Visualize**: Use built-in visualization tools
 
 ---
 
