@@ -8,6 +8,7 @@ Created on Sun Dec  7 18:14:35 2025
 """
 Visualization functions for simulation results
 """
+
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 import numpy as np
@@ -110,8 +111,8 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
     
     df_plot['result_type'] = df_plot.apply(get_result_type, axis=1)
     
-    # Create figure
-    plt.figure(figsize=(14, 10))
+    # Create figure with 5 subplots (4 plots + 1 ranking)
+    fig = plt.figure(figsize=(16, 14))
     
     # Assign colors
     result_colors = {
@@ -123,85 +124,53 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
     strategy_colors = plt.cm.Set1(np.linspace(0, 1, len(strategy_list)))
     color_dict = dict(zip(strategy_list, strategy_colors))
     
-    # Create subplot 1: Steps vs Wagon count with separated error points
-    plt.subplot(2, 2, 1)
+    # --------------------------------------------------------------------
+    # SUBPLOT 1: Steps vs Wagon count - ONLY 100% CORRECT STRATEGIES
+    # --------------------------------------------------------------------
+    ax1 = plt.subplot(3, 2, 1)
     
-    # First plot successful runs
-    for strategy in strategy_list:
-        mask = (df_plot['strategy'] == strategy) & (df_plot['result_type'] == 'correct')
-        subset = df_plot[mask]
-        
-        if len(subset) > 0:
-            # Sort by n for better line connections
-            subset = subset.sort_values('n')
-            plt.plot(subset['n'], subset['plot_y'], 
-                    marker='o', linestyle='-', linewidth=2,
-                    label=f'{strategy} (korrekt)', 
-                    color=color_dict[strategy], markersize=8, alpha=0.8)
+    # Calculate which strategies are 100% correct
+    strategy_success = df.groupby('strategy')['correct'].mean()
+    perfect_strategies = strategy_success[strategy_success == 1.0].index.tolist()
     
-    # Then plot error cases with different markers
-    error_markers = {
-        'wrong_result': 's',  # square
-        'no_solution': 'X'    # x
-    }
-    
-    error_labels_added = {'wrong_result': False, 'no_solution': False}
-    
-    for strategy in strategy_list:
-        for error_type in ['wrong_result', 'no_solution']:
-            mask = (df_plot['strategy'] == strategy) & (df_plot['result_type'] == error_type)
+    if perfect_strategies:
+        # Plot only perfect strategies
+        for strategy in perfect_strategies:
+            mask = (df_plot['strategy'] == strategy) & (df_plot['result_type'] == 'correct')
             subset = df_plot[mask]
             
             if len(subset) > 0:
-                label = None
-                if not error_labels_added[error_type]:
-                    label = 'Falsches Ergebnis' if error_type == 'wrong_result' else 'Keine Lösung'
-                    error_labels_added[error_type] = True
-                
-                plt.scatter(subset['n'], subset['plot_y'],
-                           marker=error_markers[error_type],
-                           color=color_dict[strategy],
-                           s=100,  # marker size
-                           edgecolors='black',
-                           linewidths=1,
-                           label=label,
-                           zorder=5)  # Ensure errors are on top
+                # Sort by n for better line connections
+                subset = subset.sort_values('n')
+                ax1.plot(subset['n'], subset['plot_y'], 
+                        marker='o', linestyle='-', linewidth=2,
+                        label=f'{strategy}', 
+                        color=color_dict[strategy], markersize=8, alpha=0.8)        
     
-    plt.xlabel('Zuglänge (n)', fontsize=12)
-    plt.ylabel('Anzahl Schritte / Fehlerposition', fontsize=12)
-    plt.title('Strategievergleich mit getrennten Fehlerdarstellungen', 
-             fontsize=14, fontweight='bold')
-    plt.grid(True, alpha=0.3)
+    ax1.set_xlabel('Train Length (n)', fontsize=12)
+    ax1.set_ylabel('Number of Steps / Error Position', fontsize=12)
+    ax1.set_title('Strategy Comparison - Perfect Strategies Only', 
+                 fontsize=14, fontweight='bold')
+    ax1.grid(True, alpha=0.3)
     
     # Create custom legend handles
     legend_handles = []
     
-    # Add strategy lines
-    for strategy, color in color_dict.items():
-        legend_handles.append(Line2D([0], [0], color=color, linewidth=2, 
+    # Add perfect strategy lines
+    for strategy in perfect_strategies:
+        legend_handles.append(Line2D([0], [0], color=color_dict[strategy], linewidth=2, 
                                     label=strategy))
     
-    # Add error markers
-    legend_handles.append(Line2D([0], [0], marker='o', color='w', 
-                                markerfacecolor='gray', markersize=8,
-                                label='Korrekt (Linie)'))
-    legend_handles.append(Line2D([0], [0], marker='s', color='w', 
-                                markerfacecolor='gray', markersize=8,
-                                label='Falsches Ergebnis'))
-    legend_handles.append(Line2D([0], [0], marker='X', color='w', 
-                                markerfacecolor='gray', markersize=8,
-                                label='Keine Lösung'))
+
     
-    plt.legend(handles=legend_handles, loc='upper left', fontsize=9)
+    ax1.legend(handles=legend_handles, loc='upper left', fontsize=9)
     
-    # Add horizontal reference lines for error zones
-    error_zone_y = -max_steps * 0.01
-    plt.axhline(y=error_zone_y, color='gray', linestyle=':', alpha=0.5, linewidth=1)
-    plt.text(plt.xlim()[1]*0.95, error_zone_y, 'Fehlerzone', 
-             ha='right', va='bottom', color='gray', fontsize=9, alpha=0.7)
     
-    # Subplot 2: Success rate by strategy
-    plt.subplot(2, 2, 2)
+    
+    # --------------------------------------------------------------------
+    # SUBPLOT 2: Success rate by strategy
+    # --------------------------------------------------------------------
+    ax2 = plt.subplot(3, 2, 2)
     
     # Calculate success rates while preserving strategy order
     success_rates = []
@@ -215,28 +184,31 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
     x = np.arange(len(strategy_list))
     width = 0.35
     
-    plt.bar(x - width/2, success_rates, width, 
-            label='Erfolg (beendet)', color='lightblue', alpha=0.8)
-    plt.bar(x + width/2, correct_rates, width, 
-            label='Korrekt', color='lightgreen', alpha=0.8)
+    ax2.bar(x - width/2, success_rates, width, 
+            label='Completed', color='lightblue', alpha=0.8)
+    ax2.bar(x + width/2, correct_rates, width, 
+            label='Correct', color='lightgreen', alpha=0.8)
     
-    plt.xlabel('Strategie', fontsize=12)
-    plt.ylabel('Prozent (%)', fontsize=12)
-    plt.title('Erfolgs- und Korrektheitsraten', fontsize=14, fontweight='bold')
-    plt.xticks(x, strategy_list, rotation=45, ha='right')
-    plt.legend()
-    plt.grid(True, alpha=0.3, axis='y')
+    ax2.set_xlabel('Strategy', fontsize=12)
+    ax2.set_ylabel('Percentage (%)', fontsize=12)
+    ax2.set_title('Completion and Correctness Rates', fontsize=14, fontweight='bold')
+    ax2.set_xticks(x)
+    ax2.set_xticklabels(strategy_list, rotation=45, ha='right')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3, axis='y')
     
     # Add value labels on bars
     for i, v in enumerate(success_rates):
-        plt.text(i - width/2, v + 1, f'{v:.0f}%', 
+        ax2.text(i - width/2, v + 1, f'{v:.0f}%', 
                 ha='center', va='bottom', fontsize=9)
     for i, v in enumerate(correct_rates):
-        plt.text(i + width/2, v + 1, f'{v:.0f}%', 
+        ax2.text(i + width/2, v + 1, f'{v:.0f}%', 
                 ha='center', va='bottom', fontsize=9)
     
-    # Subplot 3: Detailed error analysis
-    plt.subplot(2, 2, 3)
+    # --------------------------------------------------------------------
+    # SUBPLOT 3: Detailed error analysis
+    # --------------------------------------------------------------------
+    ax3 = plt.subplot(3, 2, 3)
     
     # Count errors by type and strategy - preserve strategy order
     error_counts_data = []
@@ -270,7 +242,7 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
     bottom = np.zeros(len(strategy_list))
     
     # Plot each error type
-    error_labels = ['Korrekt', 'Falsch', 'Keine Lösung']
+    error_labels = ['Correct', 'Wrong', 'No Solution']
     error_colors_plot = ['green', 'orange', 'red']
     
     for i, (counts, label, color) in enumerate(zip(
@@ -278,27 +250,30 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
         error_labels,
         error_colors_plot
     )):
-        plt.bar(x_pos, counts, bottom=bottom, label=label, 
+        ax3.bar(x_pos, counts, bottom=bottom, label=label, 
                color=color, alpha=0.7, edgecolor='black')
         
         # Add labels in the middle of each segment
         for j, (val, bot) in enumerate(zip(counts, bottom)):
             if val > 0:
-                plt.text(j, bot + val/2, str(val), 
+                ax3.text(j, bot + val/2, str(val), 
                         ha='center', va='center', color='white',
                         fontweight='bold', fontsize=10)
         bottom += np.array(counts)
     
-    plt.xlabel('Strategie', fontsize=12)
-    plt.ylabel('Anzahl Simulationen', fontsize=12)
-    plt.title('Detaillierte Fehleranalyse nach Strategie', 
-             fontsize=14, fontweight='bold')
-    plt.xticks(x_pos, strategy_list, rotation=45, ha='right')
-    plt.legend()
-    plt.grid(True, alpha=0.3, axis='y')
+    ax3.set_xlabel('Strategy', fontsize=12)
+    ax3.set_ylabel('Number of Simulations', fontsize=12)
+    ax3.set_title('Detailed Error Analysis by Strategy', 
+                 fontsize=14, fontweight='bold')
+    ax3.set_xticks(x_pos)
+    ax3.set_xticklabels(strategy_list, rotation=45, ha='right')
+    ax3.legend()
+    ax3.grid(True, alpha=0.3, axis='y')
     
-    # Subplot 4: Scatter plot with jitter for all results
-    plt.subplot(2, 2, 4)
+    # --------------------------------------------------------------------
+    # SUBPLOT 4: Scatter plot with jitter for all results
+    # --------------------------------------------------------------------
+    ax4 = plt.subplot(3, 2, 4)
     
     # Add small jitter to x-position to separate points
     np.random.seed(42)  # For reproducible jitter
@@ -312,11 +287,11 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
             
             # Different markers for different result types
             marker = 'o' if result_type == 'correct' else 's' if result_type == 'wrong_result' else 'X'
-            label_map = {'correct': 'Korrekt', 
-                        'wrong_result': 'Falsches Ergebnis', 
-                        'no_solution': 'Keine Lösung'}
+            label_map = {'correct': 'Correct', 
+                        'wrong_result': 'Wrong Result', 
+                        'no_solution': 'No Solution'}
             
-            plt.scatter(subset['n_jittered'], subset['plot_y'],
+            ax4.scatter(subset['n_jittered'], subset['plot_y'],
                        c=[color_dict[s] for s in subset['strategy']],
                        marker=marker,
                        s=80,
@@ -325,33 +300,178 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
                        label=label_map[result_type],
                        alpha=0.8)
     
-    plt.xlabel('Zuglänge (n) mit Jitter', fontsize=12)
-    plt.ylabel('Ergebnis', fontsize=12)
-    plt.title('Alle Ergebnisse mit Strategie-Farben und Jitter', 
-             fontsize=14, fontweight='bold')
-    plt.grid(True, alpha=0.3)
+    ax4.set_xlabel('Train Length (n) with Jitter', fontsize=12)
+    ax4.set_ylabel('Result', fontsize=12)
+    ax4.set_title('All Results with Strategy Colors and Jitter', 
+                 fontsize=14, fontweight='bold')
+    ax4.grid(True, alpha=0.3)
     
     # Create legend for result types
     result_legend_handles = []
     for result_type, color in result_colors.items():
-        label_map = {'correct': 'Korrekt', 
-                    'wrong_result': 'Falsches Ergebnis', 
-                    'no_solution': 'Keine Lösung'}
+        label_map = {'correct': 'Correct', 
+                    'wrong_result': 'Wrong Result', 
+                    'no_solution': 'No Solution'}
         marker = 'o' if result_type == 'correct' else 's' if result_type == 'wrong_result' else 'X'
         result_legend_handles.append(Line2D([0], [0], marker=marker, color='w', 
                                            markerfacecolor=color, markersize=8,
                                            label=label_map[result_type]))
     
-    plt.legend(handles=result_legend_handles, loc='upper left')
+    ax4.legend(handles=result_legend_handles, loc='upper left')
+    
+    # --------------------------------------------------------------------
+    # SUBPLOT 5: Overall Ranking Table
+    # --------------------------------------------------------------------
+    ax5 = plt.subplot(3, 1, 3)
+    ax5.axis('tight')
+    ax5.axis('off')
+    
+    # Calculate ranking metrics
+    ranking_data = []
+    for strategy in strategy_list:
+        mask = df['strategy'] == strategy
+        subset = df[mask]
+        
+        # Basic metrics
+        total_simulations = len(subset)
+        success_rate = subset['success'].mean()
+        correctness_rate = subset['correct'].mean()
+        
+        # Steps per wagon for successful correct runs
+        successful_correct = subset[subset['success'] & subset['correct']]
+        if len(successful_correct) > 0:
+            avg_steps_per_wagon = successful_correct['efficiency'].mean()
+        else:
+            avg_steps_per_wagon = float('inf')
+        
+        # Total average steps (including failures)
+        avg_total_steps = subset['steps'].mean()
+        
+        ranking_data.append({
+            'Strategy': strategy,
+            'Correctness': correctness_rate,
+            'Avg Steps/Wagon': avg_steps_per_wagon if avg_steps_per_wagon != float('inf') else None,
+            'Success Rate': success_rate,
+            'Total Simulations': total_simulations,
+            'Avg Total Steps': avg_total_steps
+        })
+    
+    # Convert to DataFrame
+    ranking_df = pd.DataFrame(ranking_data)
+    
+    # Sort by: 1. Correctness (descending), 2. Avg Steps/Wagon (ascending)
+    ranking_df = ranking_df.sort_values(
+        by=['Correctness', 'Avg Steps/Wagon'], 
+        ascending=[False, True]
+    ).reset_index(drop=True)
+    
+    # Add ranking position
+    ranking_df['Rank'] = ranking_df.index + 1
+    
+    # Reorder columns
+    ranking_df = ranking_df[['Rank', 'Strategy', 'Correctness', 'Avg Steps/Wagon', 
+                            'Success Rate', 'Total Simulations', 'Avg Total Steps']]
+    
+    # Format values for display
+    def format_correctness(val):
+        return f"{val:.1%}" if pd.notnull(val) else "N/A"
+    
+    def format_steps(val):
+        return f"{val:.1f}" if pd.notnull(val) and val != float('inf') else "N/A"
+    
+    def format_rate(val):
+        return f"{val:.1%}" if pd.notnull(val) else "N/A"
+    
+    display_df = ranking_df.copy()
+    display_df['Correctness'] = display_df['Correctness'].apply(format_correctness)
+    display_df['Avg Steps/Wagon'] = display_df['Avg Steps/Wagon'].apply(format_steps)
+    display_df['Success Rate'] = display_df['Success Rate'].apply(format_rate)
+    display_df['Avg Total Steps'] = display_df['Avg Total Steps'].apply(lambda x: f"{x:.1f}" if pd.notnull(x) else "N/A")
+    
+    # Create table
+    table_data = display_df.values.tolist()
+    columns = list(display_df.columns)
+    
+    # Color rows based on correctness
+    colors = []
+    for _, row in ranking_df.iterrows():
+        if row['Correctness'] == 1.0:
+            colors.append(['lightgreen'] * len(columns))  # Perfect strategies
+        elif row['Correctness'] >= 0.5:
+            colors.append(['lightyellow'] * len(columns))  # Good strategies
+        else:
+            colors.append(['lightcoral'] * len(columns))  # Poor strategies
+    
+    table = ax5.table(cellText=table_data,
+                     colLabels=columns,
+                     cellLoc='center',
+                     loc='center',
+                     cellColours=colors)
+    
+    # Style the table
+    table.auto_set_font_size(False)
+    table.set_fontsize(10)
+    table.scale(1.2, 1.5)
+    
+    # Make header row bold
+    for i in range(len(columns)):
+        table[(0, i)].set_text_props(weight='bold')
+    
+    ax5.set_title('Overall Strategy Ranking\n(Sorted by Correctness → Efficiency)', 
+                 fontsize=16, fontweight='bold', pad=20)
+    
+    # Add legend for row colors
+    legend_elements = [
+        Line2D([0], [0], marker='s', color='w', markerfacecolor='lightgreen', 
+              markersize=15, label='Perfect (100% Correct)'),
+        Line2D([0], [0], marker='s', color='w', markerfacecolor='lightyellow', 
+              markersize=15, label='Good (≥50% Correct)'),
+        Line2D([0], [0], marker='s', color='w', markerfacecolor='lightcoral', 
+              markersize=15, label='Poor (<50% Correct)')
+    ]
+    
+    ax5.legend(handles=legend_elements, loc='upper center', 
+              bbox_to_anchor=(0.5, -0.05), ncol=3, fontsize=10)
     
     plt.tight_layout()
     
     # Save the figure
     plot_path = f"{output_dir}/strategy_comparison_improved.png"
     plt.savefig(plot_path, dpi=150, bbox_inches='tight')
-    print(f"\nVerbesserte Visualisierung gespeichert als: {plot_path}")
+    print(f"\nImproved visualization saved as: {plot_path}")
     
-    # Show additional plot: Steps distribution with error indicators
+    # Save ranking as CSV
+    ranking_csv_path = f"{output_dir}/strategy_ranking.csv"
+    ranking_df.to_csv(ranking_csv_path, index=False)
+    print(f"Strategy ranking saved as: {ranking_csv_path}")
+    
+    # Print ranking summary
+    print("\n" + "="*80)
+    print("OVERALL STRATEGY RANKING")
+    print("="*80)
+    print("\nTop 5 Strategies:")
+    for i, (_, row) in enumerate(ranking_df.head(5).iterrows(), 1):
+        steps = f"{row['Avg Steps/Wagon']:.1f}" if pd.notnull(row['Avg Steps/Wagon']) else "N/A"
+        print(f"  {i}. {row['Strategy']:30s} - Correct: {row['Correctness']:.1%} - Steps/Wagon: {steps}")
+    
+    # Separate perfect and imperfect strategies
+    perfect = ranking_df[ranking_df['Correctness'] == 1.0]
+    imperfect = ranking_df[ranking_df['Correctness'] < 1.0]
+    
+    if len(perfect) > 0:
+        print(f"\nPerfect Strategies ({len(perfect)} total):")
+        for _, row in perfect.iterrows():
+            steps = f"{row['Avg Steps/Wagon']:.1f}" if pd.notnull(row['Avg Steps/Wagon']) else "N/A"
+            print(f"  ✓ {row['Strategy']:30s} - Steps/Wagon: {steps}")
+    
+    if len(imperfect) > 0:
+        print(f"\nStrategies with Errors ({len(imperfect)} total):")
+        for _, row in imperfect.iterrows():
+            print(f"  ⚠ {row['Strategy']:30s} - Correct: {row['Correctness']:.1%}")
+    
+    # --------------------------------------------------------------------
+    # Additional Plot: Steps distribution with error indicators
+    # --------------------------------------------------------------------
     plt.figure(figsize=(12, 6))
     
     # Create violin plot for steps distribution
@@ -394,9 +514,9 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
                             bbox=dict(boxstyle="round,pad=0.3", 
                                      facecolor="yellow", alpha=0.7))
     
-    plt.xlabel('Strategie', fontsize=12)
-    plt.ylabel('Anzahl Schritte', fontsize=12)
-    plt.title('Verteilung der Schritte mit Fehlerindikatoren', 
+    plt.xlabel('Strategy', fontsize=12)
+    plt.ylabel('Number of Steps', fontsize=12)
+    plt.title('Steps Distribution with Error Indicators (Correct Runs Only)', 
              fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3, axis='y')
     plt.xticks(range(1, len(violin_labels) + 1), violin_labels, rotation=45, ha='right')
@@ -407,4 +527,6 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
     
     plt.show()
     
-    print(f"Zusätzliche Verteilungsvisualisierung: {plot_path2}")
+    print(f"\nAdditional distribution visualization: {plot_path2}")
+    
+    return ranking_df
