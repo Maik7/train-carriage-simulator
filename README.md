@@ -27,12 +27,10 @@ You as an agent can:
 
 ## 🎯 Inspiration Sources
 
-I discovered this puzzle through these Instagram pages:
-- [@mathe.raetsel](https://instagram.com/mathe.raetsel) - Math puzzles and brain teasers
-- [@logikraetsel](https://instagram.com/logikraetsel) - Logic puzzles and brain training
-- [@brainteasers.official](https://instagram.com/brainteasers.official) - Brainteasers and puzzles
-
-*(Note: These are placeholder links. Please replace with the actual Instagram links where you found the puzzle.)*
+I discovered this puzzle through these Instagram pages from Marc Ordower:
+- https://www.instagram.com/reel/DPKchvZCSBY/?igsh=OWZuaXRldHY5anNv
+- https://www.instagram.com/reel/DPXV7R2Cf8u/?igsh=eXBqMzVyOHFld3lo
+- https://www.instagram.com/reel/DPfCHmuCfGK/?igsh=ajFreXl6ZDBib2tw
 
 ## 🚀 Installation
 
