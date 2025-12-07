@@ -195,6 +195,140 @@ results = compare_strategies(
 )
 ```
 
+---
+
+## 🤖 LLM Prompt for Strategy Implementation
+
+### Problem Description for LLMs
+Here's a detailed prompt you can use with LLMs (like DeepSeek, ChatGPT, etc.) to generate new strategy implementations:
+
+```
+I need to implement a strategy for the "Train Carriage Problem" in Python. 
+
+PROBLEM DESCRIPTION:
+- There are n carriages arranged in a circle (positions 0 to n-1)
+- Each carriage has a light: ON (1) or OFF (0)
+- Initial configuration is random/unknown
+- Agent starts at position 0
+- Agent can: 
+  1. Move forward (+1) or backward (-1) (wraps around modulo n)
+  2. Toggle the current light (0→1 or 1→0)
+  3. Use persistent memory between steps
+
+GOAL: Determine n and terminate.
+
+STRATEGY FUNCTION SPECIFICATION:
+The strategy function must have this exact signature:
+```python
+def strategy_name(lamp_state: int, memory: dict) -> tuple:
+    """
+    Args:
+        lamp_state: 0 (OFF) or 1 (ON) - current light state
+        memory: Dictionary for persistent storage between calls
+    
+    Returns:
+        tuple: (toggle, move, memory, done, estimated_n)
+        - toggle: bool - whether to toggle the light
+        - move: int - -1 (backward), 0 (stay), +1 (forward)
+        - memory: dict - updated memory dictionary
+        - done: bool - whether strategy is finished
+        - estimated_n: int or None - estimated n if done=True
+    """
+```
+
+IMPLEMENTATION REQUIREMENTS:
+1. Initialize memory on first call: if memory == {}: ...
+2. Always return move ≠ 0 except when done=True
+3. When done=True, return estimated_n (the determined n)
+4. Memory persists across calls - store state information
+
+EXAMPLE TEMPLATE:
+```python
+def my_strategy(lamp_state, memory):
+    if memory == {}:
+        memory["phase"] = "start"
+        memory["counter"] = 0
+    
+    toggle = False
+    done = False
+    estimated_n = None
+    
+    # Your strategy logic here
+    if memory["phase"] == "start":
+        # Initial actions
+        if lamp_state == 1:
+            toggle = True
+        memory["phase"] = "search"
+        return toggle, 1, memory, done, estimated_n
+    
+    # Continue with state machine...
+    
+    return toggle, +1, memory, done, estimated_n
+```
+
+STRATEGY IDEA TO IMPLEMENT:
+[Describe your strategy idea here in words. For example:
+"Start by turning light in carriage 0 OFF. Then move forward until finding 
+a light that is ON, turn it OFF, and return to start. Count steps. Repeat 
+until start light changes, indicating full cycle."]
+
+Please implement this strategy in Python with proper state management.
+```
+
+### Example Strategy Description for LLMs
+```
+STRATEGY: "Binary Search Approach"
+1. Start with carriage 0 light ON
+2. Use binary search principle: maintain low=0, high=unknown
+3. Move forward in exponentially increasing steps
+4. When finding OFF light, mark as potential boundary
+5. Return to start and adjust search range
+6. When range converges to single value, verify by checking light change
+7. Terminate with estimated n
+```
+
+---
+
+## 📊 Visualization Examples
+
+### 1. Strategy Comparison Visualization
+![Strategy Comparison](https://github.com/Maik7/train-carriage-simulator/images/strategy_comparison_improved.png)
+
+**Description:**
+This comprehensive visualization shows:
+- **Top-left**: Steps vs train length (n) for all strategies
+  - Solid lines: Correct results (steps count)
+  - Squares (□): Wrong results (finished but incorrect n)
+  - Crosses (✗): No solution found (timeout)
+  - Error zone: Separated y-levels for different error types
+  - Each strategy has unique color
+- **Top-right**: Success and correctness rates
+  - Light blue: Success rate (finished)
+  - Light green: Correctness rate (finished with correct n)
+- **Bottom-left**: Detailed error analysis
+  - Stacked bars showing counts of correct/wrong/failed runs
+  - Numbers inside bars show exact counts
+- **Bottom-right**: All results with jitter
+  - Shows all data points with small x-jitter to prevent overlap
+  - Different markers for result types
+
+### 2. Steps Distribution with Error Indicators
+![Steps Distribution](https://github.com/Maik7/train-carriage-simulator/images/steps_distribution_with_errors.png)
+
+**Description:**
+Violin plots showing the distribution of steps needed for successful strategies:
+- **Violin shape**: Shows probability density of steps
+- **White dot**: Median value
+- **Box inside**: Interquartile range
+- **Color**: Strategy-specific coloring
+- **Error indicators above**: 
+  - ✗{number}: Count of wrong results
+  - ⚠{number}: Count of failed runs (no solution)
+- Allows comparison of efficiency spread between strategies
+
+---
+
+
 ## 📁 Project Structure
 
 ```
