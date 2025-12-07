@@ -306,18 +306,52 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
                  fontsize=14, fontweight='bold')
     ax4.grid(True, alpha=0.3)
     
-    # Create legend for result types
-    result_legend_handles = []
-    for result_type, color in result_colors.items():
-        label_map = {'correct': 'Correct', 
-                    'wrong_result': 'Wrong Result', 
-                    'no_solution': 'No Solution'}
-        marker = 'o' if result_type == 'correct' else 's' if result_type == 'wrong_result' else 'X'
-        result_legend_handles.append(Line2D([0], [0], marker=marker, color='w', 
-                                           markerfacecolor=color, markersize=8,
-                                           label=label_map[result_type]))
     
-    ax4.legend(handles=result_legend_handles, loc='upper left')
+    # Create comprehensive legend with all strategy colors and error markers
+    
+    # 1. Erstelle Legenden-Elemente für alle Strategien (runde Marker)
+    strategy_legend_handles = []
+    for strategy, color in color_dict.items():
+        # Nur Strategien hinzufügen, die in den Daten vorkommen
+        if strategy in df_plot['strategy'].unique():
+            strategy_legend_handles.append(
+                Line2D([0], [0], marker='o', color='w', 
+                      markerfacecolor=color, markersize=10,
+                      label=strategy)
+            )
+    
+    # 2. Erstelle Legenden-Elemente für Fehlertypen
+    error_legend_handles = [
+        Line2D([0], [0], marker='s', color='w', 
+              markerfacecolor='gray', markersize=10,
+              label='Wrong Result (square)'),
+        Line2D([0], [0], marker='X', color='w', 
+              markerfacecolor='gray', markersize=10,
+              label='No Solution (X)')
+    ]
+    
+    # 3. Kombiniere beide Listen
+    all_legend_handles = strategy_legend_handles + error_legend_handles
+    
+    # 4. Erstelle Legende mit zwei Spalten
+    ax4.legend(handles=all_legend_handles, 
+              loc='upper left',
+              ncol=2,  # Zwei Spalten für bessere Lesbarkeit
+              fontsize=9,
+              framealpha=0.9)
+    
+    # # Create legend for result types
+    # result_legend_handles = []
+    # for result_type, color in result_colors.items():
+    #     label_map = {'correct': 'Correct', 
+    #                 'wrong_result': 'Wrong Result', 
+    #                 'no_solution': 'No Solution'}
+    #     marker = 'o' if result_type == 'correct' else 's' if result_type == 'wrong_result' else 'X'
+    #     result_legend_handles.append(Line2D([0], [0], marker=marker, color='w', 
+    #                                        markerfacecolor=color, markersize=8,
+    #                                        label=label_map[result_type]))
+    
+    # ax4.legend(handles=result_legend_handles, loc='upper left')
     
     # --------------------------------------------------------------------
     # SUBPLOT 5: Overall Ranking Table
