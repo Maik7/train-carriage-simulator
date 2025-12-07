@@ -88,6 +88,7 @@ The simulator contains multiple solution strategies:
 - Counts OFF lights
 - Adaptive thresholds
 - mostly unsuccesful (needs tuning)
+- example for unseccesful strategy
 
 ## 📊 Strategy Comparison
 
@@ -199,8 +200,9 @@ results = compare_strategies(
 
 ### Problem Description for LLMs
 Here's a detailed prompt you can use with LLMs (like DeepSeek, ChatGPT, etc.) to generate new strategy implementations:
+---
 
-```
+````
 I need to implement a strategy for the "Train Carriage Problem" in Python. 
 
 PROBLEM DESCRIPTION:
@@ -271,7 +273,7 @@ a light that is ON, turn it OFF, and return to start. Count steps. Repeat
 until start light changes, indicating full cycle."]
 
 Please implement this strategy in Python with proper state management.
-```
+````
 
 ### Example Strategy Description for LLMs
 ```
@@ -290,15 +292,12 @@ STRATEGY: "Binary Search Approach"
 ## 📊 Visualization Examples
 
 ### 1. Strategy Comparison Visualization
-![Strategy Comparison](https://github.com/Maik7/train-carriage-simulator/images/strategy_comparison_improved.png)
+![Strategy Comparison](images/strategy_comparison_improved.png)
 
 **Description:**
 This comprehensive visualization shows:
-- **Top-left**: Steps vs train length (n) for all strategies
+- **Top-left**: Steps vs train length (n) for 100% correct strategies
   - Solid lines: Correct results (steps count)
-  - Squares (□): Wrong results (finished but incorrect n)
-  - Crosses (✗): No solution found (timeout)
-  - Error zone: Separated y-levels for different error types
   - Each strategy has unique color
 - **Top-right**: Success and correctness rates
   - Light blue: Success rate (finished)
@@ -311,7 +310,7 @@ This comprehensive visualization shows:
   - Different markers for result types
 
 ### 2. Steps Distribution with Error Indicators
-![Steps Distribution](https://github.com/Maik7/train-carriage-simulator/images/steps_distribution_with_errors.png)
+![Steps Distribution](images/steps_distribution_with_errors.png)
 
 **Description:**
 Violin plots showing the distribution of steps needed for successful strategies:
@@ -324,7 +323,6 @@ Violin plots showing the distribution of steps needed for successful strategies:
   - ⚠{number}: Count of failed runs (no solution)
 - Allows comparison of efficiency spread between strategies
 
----
 
 
 ## 📁 Project Structure
@@ -387,6 +385,8 @@ Contributions are welcome! Possible improvements:
 - Better visualizations
 - Additional analysis tools
 - Web interface
+
+If new strategies are pulled, I will update the report with the overall ranking. I may change the seed of the random generator or the length of the trains.
 
 ### Contribution Guidelines
 1. Fork the repository
