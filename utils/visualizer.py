@@ -395,7 +395,7 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
     
     # Sort by: 1. Correctness (descending), 2. Avg Steps/Wagon (ascending)
     ranking_df = ranking_df.sort_values(
-        by=['Correctness', 'Avg Steps/Wagon'], 
+        by=['Correctness', 'Avg Total Steps'], 
         ascending=[False, True]
     ).reset_index(drop=True)
     
