@@ -38,7 +38,10 @@ for filename in os.listdir(package_dir):
                         params = list(sig.parameters.keys())
                         if len(params) >= 2 and params[0] == 'lamp_state' and params[1] == 'memory':
                             # Use module name or function name as key
-                            strategy_name = module_name.replace('_', '-').title()
+                            if "get_title" in params:
+                                strategy_name = attr(None,None,get_title=True)
+                            else:
+                                strategy_name = module_name.replace('_', '-').title()
                             strategies[strategy_name] = attr
                             print(f"Loaded strategy: {strategy_name} from {module_name}.py")
                     except:
