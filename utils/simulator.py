@@ -15,7 +15,7 @@ import os
 from .visualizer import render
 
 
-def simulate(n: int, strategy: Callable, max_steps: int = 2000, 
+def simulate(n: int, strategy: Callable, max_steps: int = 5000, 
              seed: Optional[int] = None, k: Optional[int] = None) -> Tuple:
     """
     Simulates the agent walking through a ring of n wagons.
@@ -77,7 +77,8 @@ def compare_strategies(configs: List[Tuple[int, int]],
                       strategies: Dict[str, Callable],
                       max_steps: int = 5000,
                       save_images: bool = True,
-                      output_dir: str = "simulation_results"):
+                      output_dir: str = "simulation_results",
+                      abort_incorrect_strategies = True):
     """
     Compare multiple strategies on different configurations.
     
@@ -96,36 +97,45 @@ def compare_strategies(configs: List[Tuple[int, int]],
         os.makedirs(output_dir)
     
     results = []
+    incorrect_strategies = []
+    
+    
     
     for n, k in configs:
         for strategy_name, strategy in strategies.items():
             # Create deterministic seed
             seed = n * 1000 + k if k not in [0, 1] else n * 1000
-            
-            print(f"Simulating: n={n}, k={k}, strategy={strategy_name}")
-            
-            history, success, estimate, correct, steps = simulate(
-                n, strategy, max_steps, seed, k
-            )
-            
-            # Save image if requested
-            if save_images and len(history) > 0:
-                filename = f"{output_dir}/n{n}_k{k}_{strategy_name}.png"
-                render(history, filename)
-            
-            # Store results
-            results.append({
-                "n": n,
-                "k": k,
-                "strategy": strategy_name,
-                "success": success,
-                "correct": correct,
-                "estimate": estimate,
-                "steps": steps,
-                "max_steps": max_steps,
-                "efficiency": steps / n if n > 0 and success else None,
-                "seed": seed
-            })
+            if not strategy_name in incorrect_strategies or abort_incorrect_strategies == False:
+                print(f"Simulating: n={n}, k={k}, strategy={strategy_name}")
+                
+                history, success, estimate, correct, steps = simulate(
+                    n, strategy, max_steps, seed, k
+                )
+                
+                # Save image if requested
+                if save_images and len(history) > 0:
+                    filename = f"{output_dir}/n{n}_k{k}_{strategy_name}.png"
+                    render(history, filename)
+                
+                # Store results
+                results.append({
+                    "n": n,
+                    "k": k,
+                    "strategy": strategy_name,
+                    "success": success,
+                    "correct": correct,
+                    "estimate": estimate,
+                    "steps": steps,
+                    "max_steps": max_steps,
+                    "efficiency": steps / n if n > 0 and success else None,
+                    "seed": seed
+                })
+                if not correct or not success:
+                    if not strategy_name in incorrect_strategies:
+                        incorrect_strategies.append(strategy_name)
+                        print(f"adding strategy={strategy_name} to incorrect_strategies")
+                    
+                
     
     # Create DataFrame
     df = pd.DataFrame(results)
