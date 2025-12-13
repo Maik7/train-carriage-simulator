@@ -71,7 +71,7 @@ The simulator contains multiple solution strategies:
 
 ### 3. **Hypothesis-Testing** (Hypothesis Testing)
 - Searches for OFF lights for hypothesis formation
-- Tests hypotheses with modular arithmetic
+- Tests hypotheses (off light found) first with forward search of complete pattern found and reject hyopthesis, if another off light is found. In that case this position is the new hypothesis and a new forward search starts. If ouy reach double the length of the first off light and the light is on: reject hypothesis, otherwise toggle and verify hypothesis by checking backwards.
 - Elegant mathematical solution
 - Up to now best solution in most cases
 
@@ -89,6 +89,72 @@ The simulator contains multiple solution strategies:
 - Adaptive thresholds
 - mostly unsuccesful (needs tuning)
 - example for unseccesful strategy
+
+### 7. **Random-Signature** (Probabilistic Hypothesis Testing)
+- **Core:** Uses deterministic random patterns for hypothesis testing
+- **Innovation:** Early returns on partial pattern matches
+- **Parameters:** `a=0.5, b∈[0.8,1.0], min_l=7` control match behavior
+- **Growth:** Sublinear (O(n^b)) vs linear (O(n)) for basic hypothesis testing
+- **Best for:** Large trains, mixed initial configurations
+
+as this algorithm is currently the most efficient one, more details:
+## 🎲 Random Signature Hypothesis Testing
+
+**Advanced Strategy** that extends the basic hypothesis testing approach with **probabilistic pattern matching**.
+
+### Core Innovation
+Instead of simply looking for OFF lights, this strategy:
+1. **Generates a deterministic random bit sequence** using a Linear Congruential Generator (LCG)
+2. **Writes this "signature"** while moving forward through carriages
+3. **Searches for pattern matches** between written and observed sequences
+4. **Returns early on partial matches** for hypothesis verification
+
+### Algorithm Parameters
+The strategy is parameterized with three key values:
+
+| Parameter | Description | Effect |
+|-----------|-------------|---------|
+| `a` | Scale factor (default: 0.5) | Controls overall match length |
+| `b` | Exponent (default: 0.8-1.0) | Determines growth rate: `b=1.0` = linear, `b<1.0` = sublinear |
+| `min_l` | Minimum match length (default: 7) | Ensures statistical significance |
+
+The **match length** formula: `l = max(min_l, ceil(a × k^b))`
+
+### Available Variants
+Three pre-configured variants are included:
+
+1. **`Random-Signature-a0.5-b1.0-n7`** (`a=0.5, b=1.0, min_l=7`)
+   - Linear growth (similar to original hypothesis testing)
+   - Conservative matching strategy
+
+2. **`Random-Signature-a0.5-b0.9-n7`** (`a=0.5, b=0.9, min_l=7`)
+   - Sublinear growth (n^0.9)
+   - More aggressive early returns
+   - Better for larger train sizes
+
+3. **`Random-Signature-a0.5-b0.8-n7`** (`a=0.5, b=0.8, min_l=7`)
+   - Strongly sublinear growth (n^0.8)
+   - Most aggressive early hypothesis testing
+   - Optimized for very large trains
+
+### How It Works
+
+```python
+# Simplified algorithm flow:
+1. Start: Generate random bit pattern via LCG PRNG
+2. Write Phase: Write pattern bits while moving forward
+3. Search Phase: Compare last l observed bits with first l written bits
+4. Match Detection: If match_length >= l, return to verify hypothesis
+5. Verification: Check if lights changed at position (k - l)
+6. Success: If changed → n = k - match_position
+7. Failure: Resume writing pattern from interruption point
+```
+
+### Mathematical Foundation
+- **PRNG:** Linear Congruential Generator: `state = (multiplier × state + increment) mod modulus`
+- **Deterministic:** Same seed → same pattern (ensures reproducibility)
+- **Statistical:** Minimum match length ensures false positives are unlikely
+- **Complexity:** Expected O(n^b) where b ∈ [0.8, 1.0]
 
 ## 📊 Strategy Comparison
 
