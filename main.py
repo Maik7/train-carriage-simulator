@@ -36,37 +36,44 @@ def main():
         (3, 0),   # Small train, all OFF
         (3, 1),   # Small train, all ON
         (3, 2),   # Small train, random
-        (5, 0),
-        (5, 1),
-        (5, 2),
-        (8, 0),
-        (8, 1),
-        (8, 2),
+        #(5, 0),
+        #(5, 1),
+        #(5, 2),
+        #(8, 0),
+        #(8, 1),
+        #(8, 2),
         (12, 0),
         (12, 1),
         (12, 2),
-        (24, 0),
-        (24, 1),
-        (24, 2),
-        (24, 3),
-        (24, 4),
-        (48, 0),
-        (48, 1),
+        #(24, 0),
+        #(24, 1),
+        #(24, 2),
+        #(24, 3),
+        #(24, 4),
         (48, 2),
         (48, 3),
         (48, 4),
-        (80, 0),
-        (80, 1),
         (80, 2),
         (80, 3),
         (80, 4),
         (90, 2),
         (100, 2),
-        (110, 2),
         (120, 2),
-        (130, 2),
+        (160, 2),
+        (200, 2),
+        (250, 2),
+        (300, 2),
+        (350, 2),
+        (400, 2),
+        (450, 2),
+        (500, 2),
+        
     ]
-    
+    __test_configs = [
+       
+        (17, 1),
+        
+    ]
     print(f"\nTeste {len(test_configs)} Konfigurationen mit {len(strategies)} Strategien")
     print("="*80)
     
@@ -78,9 +85,10 @@ def main():
     results_df = compare_strategies(
         configs=test_configs,
         strategies=strategies,
-        max_steps=10000,
+        max_steps=5000,
         save_images=True,
-        output_dir="simulation_results"
+        output_dir="simulation_results",
+        abort_incorrect_strategies = True
     )
     
     # Generate detailed report
