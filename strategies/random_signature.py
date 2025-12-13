@@ -8,8 +8,9 @@ Created on Mon Dec  8 12:59:54 2025
 
 import math
 from collections import deque
-
-def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 0.5, min_l = 3 ):
+def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 0.5, min_l = 3, get_title = False ):
+    if get_title:
+        return f"Random Signature a={a:.1f} b={b:.1f} n={min_l}"
     """
     Angepasste Strategie:
     - l = max(min_l, ceil(a*k**b)) 
@@ -18,6 +19,7 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
     """
     # --- Initialisierung ---
     #print(memory)
+    
     if memory == {}:
         memory["phase"] = "search"
         memory["global_step"] = 0
@@ -74,7 +76,7 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
         val = max(memory.get("min_l", 1), val)
         #val = min(val, memory.get("max_l_cap", memory.get("pattern_len", 20)))
         return int(val)
-
+    
     def get_matching_len(observed,written):
         best_matching_len = 0
         for test_len  in range(len(written)-1):
@@ -97,12 +99,10 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
     if pos_key not in memory["history"]:
         memory["history"][pos_key] = lamp_state
 
-    # Append to observed sliding window
+    
     observed = memory["observed"]
-    observed.append(lamp_state)
-    #if len(observed) > memory["pattern_len"]:
-    #    observed.popleft()
-
+    #observed.append(lamp_state)
+    
     phase = memory["phase"]
 
     # --- WRITE ---
@@ -125,8 +125,11 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
 
     # --- SEARCH ---
     if phase == "search":
+        observed.append(lamp_state)
+        
         k = memory["global_step"] # "k" wie in deiner Beschreibung (Schrittindex)
         l = compute_l(k)
+        last_l = compute_l(k-1)
         # Warten bis wir mindestens l beobachtete und l geschriebene Bits haben
         if len(observed) >= l and len(memory["written"]) >= l:
             # Wir vergleichen die letzten l beobachteten Bits mit den ersten l geschriebenen Bits.
@@ -139,11 +142,17 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
                 toggle = True
                 memory["toggle_done"] = True
                 #memory["back_target_step"] = k - l - 1
-                memory["back_target_step"] = l - 1
+                memory["back_target_step"] = matching_len - 1
                 memory["phase"] = "back"
                 move = -1
                 memory["last_move"] = move
                 memory["global_step"] = gs - 1
+                
+                # a = memory.get("a", 1.0)
+                # b = memory.get("b", 1.0)
+                # val = math.ceil(a * (k ** b)) if k > 0 else memory.get("min_l", 1)
+                # print(f"found match at {k}, len:{matching_len}>={l}, a={a} b={b} val={val} found={memory['written'][:matching_len]}")
+                #breakpoint()
                 return toggle, move, memory, done, estimated_n
         # kein Match -> nun schreiben (Phase bleibt search)
         memory["phase"] = "search"
@@ -216,6 +225,7 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
             move = +1
             memory["last_move"] = move
             memory["global_step"] = current_step + 1
+            
             return toggle, move, memory, done, estimated_n
 
     # --- DONE ---
@@ -231,23 +241,17 @@ def train_strategy_random_signature(lamp_state: int, memory: dict, a = 0.5, b = 
     memory["global_step"] = gs + 1
     return toggle, move, memory, done, estimated_n
 
-def train_strategy_random_signature_a050_b100_n7(lamp_state: int, memory: dict, get_title = False):
-    if get_title:
-        return "Random Signature a0.5 b1 n7"
-    else:
-        return  train_strategy_random_signature(lamp_state, memory, a = 0.5, b = 1, min_l = 7 )
+def train_strategy_random_signature_a090_b060_n8(lamp_state: int, memory: dict, get_title = False):
+    return  train_strategy_random_signature(lamp_state, memory, a = 0.9, b = 0.6, min_l = 8, get_title = get_title )
+
+def train_strategy_random_signature_a0025_b01_n12(lamp_state: int, memory: dict, get_title = False):
+    return  train_strategy_random_signature(lamp_state, memory, a = 0.6, b = 0.6, min_l = 10, get_title = get_title  )
 
 def train_strategy_random_signature_a050_b090_n7(lamp_state: int, memory: dict, get_title = False):
-    if get_title:
-        return "Random Signature a0.5 b0.9 n7"
-    else:
-        return  train_strategy_random_signature(lamp_state, memory, a = 0.5, b = .9, min_l = 7 )
+    return  train_strategy_random_signature(lamp_state, memory, a = 0.5, b = .9, min_l = 7, get_title = get_title  )
 
 def train_strategy_random_signature_a050_b080_n7(lamp_state: int, memory: dict, get_title = False):
-    if get_title:
-        return "Random Signature a0.5 b0.8 n7"
-    else:
-        return  train_strategy_random_signature(lamp_state, memory, a = 0.5, b = .8, min_l = 7 )
+    return  train_strategy_random_signature(lamp_state, memory, a = 0.5, b = .8, min_l = 7, get_title = get_title  )
 
 
 
