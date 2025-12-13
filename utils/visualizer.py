@@ -542,7 +542,7 @@ def visualize_results(df: pd.DataFrame, output_dir: str = "simulation_results"):
                 if wrong > 0 or failed > 0:
                     # Position text above the violin
                     y_pos = max(violin_data[i]) * 1.1 if len(violin_data[i]) > 0 else 0
-                    error_text = f"✗{wrong} ⚠{failed}" if failed > 0 else f"✗{wrong}"
+                    error_text = f"X{wrong} !{failed}" if failed > 0 else f"X{wrong}"
                     plt.text(i + 1, y_pos, error_text, 
                             ha='center', va='bottom', fontsize=9,
                             bbox=dict(boxstyle="round,pad=0.3", 
