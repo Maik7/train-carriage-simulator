@@ -3,7 +3,8 @@
 A Python simulator for the classic "Train Carriage Problem" (also known as "Labyrinth Problem" or "Train-Carriage Problem") with multiple solution strategies and visualizations.
 
 
-![ring train picture](images/Copilot_20251207_174149.png)
+![ring train picture](images/Copilot_20251207_174149.png)[^1]
+[^1]:yes, the picture is wrong as the train has no windows. But it looks booring without windows.
 
 ## 📖 The Puzzle
 
@@ -15,14 +16,23 @@ You as an agent can:
 2. Toggle the light switch in the current carriage
 3. Remember limited information (memory)
 
+But you can't
+1. look aut of the windows (there are none)
+2. look into the next carriages
+3. mark or modify the carriage in any other way
+4. measure angles
+   
 **Goal**: Determine how many carriages the train has (n) and terminate.
 
 ![ring train picture](images/Copilot_20251207_174204.png)
+
+
 
 ### Example
 - Starting position: Carriage 0
 - Train has 5 carriages (n=5)
 - Initial configuration: [1, 0, 1, 1, 0] (random)
+- If you only walk forward and switch off lights, you will recognize this sequence:[1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ...]
 - Goal: Determine that n=5
 
 ## 🎯 Inspiration Sources
@@ -63,17 +73,19 @@ The simulator contains multiple solution strategies:
 - Moves forward until finding OFF light
 - Turns it ON and returns
 - Repeats until start light is ON
+- O(N²) (slow)
 
 ### 2. **Powers-of-Two** (Logarithmic Strategy)
 - Uses powers of two (1, 2, 4, 8, ...)
 - Turns off lights in blocks
 - Efficient for large n
+- O(N log N) (faster)
 
 ### 3. **Hypothesis-Testing** (Hypothesis Testing)
 - Searches for OFF lights for hypothesis formation
-- Tests hypotheses (off light found) first with forward search of complete pattern found and reject hyopthesis, if another off light is found. In that case this position is the new hypothesis and a new forward search starts. If ouy reach double the length of the first off light and the light is on: reject hypothesis, otherwise toggle and verify hypothesis by checking backwards.
+- Tests hypotheses (off light found) first with forward search of complete pattern found and reject hypothesis, if another off light is found. In that case this position is the new hypothesis and a new forward search starts. If you reach double the length of the first off light and the light is on: reject hypothesis, otherwise toggle and verify hypothesis by checking backwards.
 - Elegant mathematical solution
-- Up to now best solution in most cases
+- First solution with O(n) (very fast, typically 3n steps, but not longer the fastest)
 
 ### 4. **Optimized-Powers** (Optimized Powers-of-Two)
 - Improved version of Powers-of-Two
@@ -88,14 +100,14 @@ The simulator contains multiple solution strategies:
 - Counts OFF lights
 - Adaptive thresholds
 - mostly unsuccesful (needs tuning)
-- example for unseccesful strategy
+- example for unseccesful strategy (test for visulization)
 
 ### 7. **Random-Signature** (Probabilistic Hypothesis Testing)
 - **Core:** Uses deterministic random patterns for hypothesis testing
 - **Innovation:** Early returns on partial pattern matches
-- **Parameters:** `a=0.5, b∈[0.8,1.0], min_l=7` control match behavior
-- **Growth:** Sublinear (O(n^b)) vs linear (O(n)) for basic hypothesis testing
-- **Best for:** Large trains, mixed initial configurations
+- **Parameters:** `a∈[0,0.5], b∈[0,1.0], min_l=7` control match behavior
+- **Growth:** Sublinear (O(n^b)) (for medium n) vs linear (O(n)), typically n+2n^b 
+- **Best for:** Large trains, all initial configurations
 
 as this algorithm is currently the most efficient one, more details:
 ## 🎲 Random Signature Hypothesis Testing
@@ -110,41 +122,46 @@ Instead of simply looking for OFF lights, this strategy:
 4. **Returns early on partial matches** for hypothesis verification
 
 ### Algorithm Parameters
-The strategy is parameterized with three key values:
+The partial pattern match length before toggeling and returning to search for the toggeled carriage depends on the actual position relative to the starting position and is parameterized with three values:
 
-| Parameter | Description | Effect |
-|-----------|-------------|---------|
-| `a` | Scale factor (default: 0.5) | Controls overall match length |
-| `b` | Exponent (default: 0.8-1.0) | Determines growth rate: `b=1.0` = linear, `b<1.0` = sublinear |
-| `min_l` | Minimum match length (default: 7) | Ensures statistical significance |
+- `a` | Scale factor (default: 0.4-1) | Controls overall match length 
+
+- `b` | Exponent (default: 0.5-0.7) | Determines growth rate: `b=1.0` = linear, `b<1.0` = sublinear 
+
+- `min_l` | Minimum match length (default: 7) | Ensures statistical significance 
 
 The **match length** formula: `l = max(min_l, ceil(a × k^b))`
 
+(`a=0.5, b=1`) is full match length as in **Hypothesis-Testing** 
 ### Available Variants
 Three pre-configured variants are included:
 
-1. **`Random-Signature-a0.5-b1.0-n7`** (`a=0.5, b=1.0, min_l=7`)
+1. **`Random Signature a=0.5 b=1.0 n=7`** (`a=0.5, b=1.0, min_l=7`)
    - Linear growth (similar to original hypothesis testing)
    - Conservative matching strategy
 
-2. **`Random-Signature-a0.5-b0.9-n7`** (`a=0.5, b=0.9, min_l=7`)
-   - Sublinear growth (n^0.9)
+2. **`Random Signature a=0.5 b=0.9 n=7`** (`a=0.5, b=0.9, min_l=7`)
+   - Sublinear growth (n+2*n^0.9), ok, linear for karge n...
    - More aggressive early returns
    - Better for larger train sizes
 
-3. **`Random-Signature-a0.5-b0.8-n7`** (`a=0.5, b=0.8, min_l=7`)
+3. **`Random Signature a=0.5 b=0.8 n=7`** (`a=0.5, b=0.8, min_l=7`)
    - Strongly sublinear growth (n^0.8)
    - Most aggressive early hypothesis testing
    - Optimized for very large trains
 
+4. **`Random Signature a=0.6 b=0.6 n=10`** (`a=0.6, b=0.6, min_l=10`)
+   - currently best parameter set, but optimum depends on train lengths in test dataset. If you test typcially short trains, smaller min_l can be better, also less aggressive a,b: a=0.5, b=1
+   
+   
 ### How It Works
 
 ```python
 # Simplified algorithm flow:
 1. Start: Generate random bit pattern via LCG PRNG
 2. Write Phase: Write pattern bits while moving forward
-3. Search Phase: Compare last l observed bits with first l written bits
-4. Match Detection: If match_length >= l, return to verify hypothesis
+3. Search Phase: Compare last observed bits with first written bits
+4. Match Detection: If match_length >= l, toggle inital reading and return to verify hypothesis
 5. Verification: Check if lights changed at position (k - l)
 6. Success: If changed → n = k - match_position
 7. Failure: Resume writing pattern from interruption point
@@ -501,6 +518,7 @@ train-carriage-simulator/
 │   ├── home_marker.py      # Home-Marker strategy
 │   ├── powers_of_two.py    # Powers-of-Two strategy
 │   ├── hypothesis_off.py   # Hypothesis-Testing strategy
+│   ├── random_signature.py # Random-Signature strategy
 │   ├── optimized_powers.py # Optimized Powers-of-Two
 │   ├── state_machine.py    # State-Machine strategy
 │   ├── counter.py          # Counter strategy
@@ -549,7 +567,7 @@ Contributions are welcome! Possible improvements:
 - Additional analysis tools
 - Web interface
 
-If new strategies are pulled, I will update the report with the overall ranking. I may change the seed of the random generator or the length of the trains.
+If new strategies are pulled, I will update the report with the overall ranking. I may change the seed of the random generator or the length of the trains to avoid over-optimization for published test cases.
 
 ### Contribution Guidelines
 1. Fork the repository
